@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -16,6 +17,7 @@ type problem struct {
 func main() {
 	csvFile := flag.String("csv", "problems.csv", "a CSV file to be parsed in a format 'question,answer'")
 	timeLimit := flag.Int("limit", 10, "time limit for the quiz in seconds")
+	shuffle := flag.Bool("shuffle", false, "shuffle the quiz order")
 	flag.Parse()
 
 	file, err := os.Open(*csvFile)
@@ -54,6 +56,18 @@ func main() {
 	// channel after the duration
 	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
 
+	// Shuffle questions
+	rangeSlice := make([]int, len(problems))
+
+	if *shuffle == true {
+		r := rand.New(rand.NewSource(time.Now().Unix()))
+		rangeSlice = r.Perm(len(problems))
+	} else {
+		for i := range problems {
+			rangeSlice[i] = i
+		}
+	}
+
 	// The problem here is you want to ask the user a question while the timer is
 	// running but you don't want to accept any answer after the timer has
 	// expired. Since NewTimer() returns the time through a channel, you can use
@@ -62,7 +76,9 @@ func main() {
 	// user answer on a goroutine, so if the timer is expired select breaks the
 	// loop instead of accept the answer.
 loop:
-	for i, p := range problems {
+	for i, v := range rangeSlice {
+		p := problems[v]
+
 		fmt.Printf("Problem %2d : %s = ", i+1, p.q)
 
 		go func() {
