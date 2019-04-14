@@ -17,18 +17,25 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	pathsToURLs := map[string]string{
-		"/godoc-http": "https://golang.org/pkg/net/http/",
-		"/godoc-yaml": "https://godoc.org/gopkg.in/yaml.v2",
-	}
+	yml := `
+- path: /godoc-http
+  url: https://golang.org/pkg/net/http/
+- path: /godoc-yaml
+  url: https://godoc.org/gopkg.in/yaml.v2
+- path: /urlshort
+  url: https://github.com/gophercises/urlshort
+- path: /urlshort-final
+  url: https://github.com/gophercises/urlshort/tree/solution
+`
 
 	r := defaultHandler()
-	m := MapHandler(pathsToURLs, r)
+	y := YAMLHandler(yml, r)
 
 	s := &http.Server{
 		Addr:    ":8080",
-		Handler: m,
+		Handler: y,
 	}
+
 	log.Printf("Starting server on %s", s.Addr)
 	log.Fatal(s.ListenAndServe())
 }
