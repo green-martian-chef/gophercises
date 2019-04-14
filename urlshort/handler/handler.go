@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -29,6 +30,15 @@ func YAMLHandler(yml string, fallback http.Handler) http.HandlerFunc {
 	return m
 }
 
+// JSONHandler returns a handler or a fallback
+func JSONHandler(j string, fallback http.Handler) http.HandlerFunc {
+	jp := parseJSON(j)
+	p := buildMap(jp)
+	m := MapHandler(p, fallback)
+
+	return m
+}
+
 func parseYAML(yml string) []pathToURL {
 	var p []pathToURL
 
@@ -40,6 +50,16 @@ func parseYAML(yml string) []pathToURL {
 	return p
 }
 
+func parseJSON(j string) []pathToURL {
+	var p []pathToURL
+
+	err := json.Unmarshal([]byte(j), &p)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	return p
+}
 func buildMap(p []pathToURL) map[string]string {
 	pathsToURLs := make(map[string]string)
 
@@ -52,6 +72,6 @@ func buildMap(p []pathToURL) map[string]string {
 
 // pathToURL represents a path and its corresponding URL
 type pathToURL struct {
-	Path string `yaml:"path"`
-	URL  string `yaml:"url"`
+	Path string `json:"path" yaml:"path"`
+	URL  string `json:"url" yaml:"url"`
 }

@@ -1,11 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 
-	h "github.com/tscangussu/gophercises/urlshort/handler"
+	"github.com/tscangussu/gophercises/urlshort/handler"
 )
 
 func defaultHandler() (r *http.ServeMux) {
@@ -19,6 +20,30 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	isJSON := flag.Bool("j", false, "use JSON instead YAML")
+	flag.Parse()
+
+	jsonPaths := `
+	[
+		{
+			"path": "/godoc-http",
+			"url": "https://golang.org/pkg/net/http/"
+		},
+		{
+			"path": "/godoc-yaml",
+			"url": "https://godoc.org/gopkg.in/yaml.v2"
+		},
+		{
+			"path": "/urlshort",
+			"url": "https://github.com/gophercises/urlshort"
+		},
+		{
+			"path": "/urlshort-final",
+			"url": "https://github.com/gophercises/urlshort/tree/solution"
+		}
+	]	
+`
+
 	yml := `
 - path: /godoc-http
   url: https://golang.org/pkg/net/http/
@@ -31,11 +56,18 @@ func main() {
 `
 
 	r := defaultHandler()
-	y := h.YAMLHandler(yml, r)
+	var h http.HandlerFunc
+
+	if *isJSON == true {
+		h = handler.JSONHandler(jsonPaths, r)
+	} else {
+		h = handler.YAMLHandler(yml, r)
+
+	}
 
 	s := &http.Server{
 		Addr:    ":8080",
-		Handler: y,
+		Handler: h,
 	}
 
 	log.Printf("Starting server on %s", s.Addr)
