@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	h "github.com/tscangussu/gophercises/urlshort/handler"
 )
 
 func defaultHandler() (r *http.ServeMux) {
@@ -29,7 +31,7 @@ func main() {
 `
 
 	r := defaultHandler()
-	y := YAMLHandler(yml, r)
+	y := h.YAMLHandler(yml, r)
 
 	s := &http.Server{
 		Addr:    ":8080",
