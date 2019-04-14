@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -19,50 +20,40 @@ func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "It Works!")
 }
 
+func openFile(f *string) []byte {
+	file, err := ioutil.ReadFile(*f)
+	if err != nil {
+		log.Fatalf("The file could not be opened. \n%v", err)
+	}
+	return file
+}
+
 func main() {
-	isJSON := flag.Bool("j", false, "use JSON instead YAML")
+	jsonFile := flag.String("json", "paths.json", "a JSON file containing an array of objects path:url")
+	yamlFile := flag.String("yaml", "paths.yaml", "a YAML file containing a list of path:url")
+	isJSON := flag.Bool("j", false, "use an JSON file instead of a YAML file. Use -json to provide a file.")
+	isYAML := flag.Bool("y", false, "use an YAML file instead the default map. Use -yaml to provide a file.")
 	flag.Parse()
 
-	jsonPaths := `
-	[
-		{
-			"path": "/godoc-http",
-			"url": "https://golang.org/pkg/net/http/"
-		},
-		{
-			"path": "/godoc-yaml",
-			"url": "https://godoc.org/gopkg.in/yaml.v2"
-		},
-		{
-			"path": "/urlshort",
-			"url": "https://github.com/gophercises/urlshort"
-		},
-		{
-			"path": "/urlshort-final",
-			"url": "https://github.com/gophercises/urlshort/tree/solution"
-		}
-	]	
-`
-
-	yml := `
-- path: /godoc-http
-  url: https://golang.org/pkg/net/http/
-- path: /godoc-yaml
-  url: https://godoc.org/gopkg.in/yaml.v2
-- path: /urlshort
-  url: https://github.com/gophercises/urlshort
-- path: /urlshort-final
-  url: https://github.com/gophercises/urlshort/tree/solution
-`
+	m := map[string]string{
+		"/godoc-http":     "https://golang.org/pkg/net/http/",
+		"/godoc-yaml":     "https://godoc.org/gopkg.in/yaml.v2",
+		"/urlshort":       "https://github.com/gophercises/urlshort",
+		"/urlshort-final": "https://github.com/gophercises/urlshort/tree/solution",
+	}
 
 	r := defaultHandler()
 	var h http.HandlerFunc
 
+	// Default to map of paths and URLs
 	if *isJSON == true {
-		h = handler.JSONHandler(jsonPaths, r)
+		file := openFile(jsonFile)
+		h = handler.JSONHandler(file, r)
+	} else if *isYAML == true {
+		file := openFile(yamlFile)
+		h = handler.YAMLHandler(file, r)
 	} else {
-		h = handler.YAMLHandler(yml, r)
-
+		h = handler.MapHandler(m, r)
 	}
 
 	s := &http.Server{

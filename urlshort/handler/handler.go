@@ -21,7 +21,7 @@ func MapHandler(pathsToURLs map[string]string, fallback http.Handler) http.Handl
 }
 
 // YAMLHandler returns a handler or a fallback
-func YAMLHandler(yml string, fallback http.Handler) http.HandlerFunc {
+func YAMLHandler(yml []byte, fallback http.Handler) http.HandlerFunc {
 
 	y := parseYAML(yml)
 	p := buildMap(y)
@@ -31,7 +31,7 @@ func YAMLHandler(yml string, fallback http.Handler) http.HandlerFunc {
 }
 
 // JSONHandler returns a handler or a fallback
-func JSONHandler(j string, fallback http.Handler) http.HandlerFunc {
+func JSONHandler(j []byte, fallback http.Handler) http.HandlerFunc {
 	jp := parseJSON(j)
 	p := buildMap(jp)
 	m := MapHandler(p, fallback)
@@ -39,10 +39,10 @@ func JSONHandler(j string, fallback http.Handler) http.HandlerFunc {
 	return m
 }
 
-func parseYAML(yml string) []pathToURL {
+func parseYAML(yml []byte) []pathToURL {
 	var p []pathToURL
 
-	err := yaml.Unmarshal([]byte(yml), &p)
+	err := yaml.Unmarshal(yml, &p)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
@@ -50,10 +50,10 @@ func parseYAML(yml string) []pathToURL {
 	return p
 }
 
-func parseJSON(j string) []pathToURL {
+func parseJSON(j []byte) []pathToURL {
 	var p []pathToURL
 
-	err := json.Unmarshal([]byte(j), &p)
+	err := json.Unmarshal(j, &p)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
