@@ -1,9 +1,12 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 
+	"github.com/tscangussu/gophercises/cyoa/cli"
 	"github.com/tscangussu/gophercises/cyoa/parser"
 	"github.com/tscangussu/gophercises/cyoa/web"
 )
@@ -87,16 +90,31 @@ var tmpl = `
 `
 
 func main() {
-	jsonFile, err := ioutil.ReadFile("gopher.json")
 
+	isWeb := flag.Bool("web", false, "the web version of CYOA")
+	isCli := flag.Bool("cli", false, "the cli version of CYOA")
+	flag.Parse()
+
+	jsonFile, err := ioutil.ReadFile("gopher.json")
 	j, err := parser.JSONParser(jsonFile)
 	if err != nil {
 		log.Fatalf("Failed to open JSON file \n %v", err)
 	}
 
-	h := web.Handler(j, tmpl)
-	s := web.Server(h)
+	if *isCli == true {
+		cli.StoryPrinter(j, "intro")
+	} else if *isWeb == true {
+		h := web.Handler(j, tmpl)
+		s := web.Server(h)
 
-	log.Printf("Starting server on %s", s.Addr)
-	log.Fatal(s.ListenAndServe())
+		log.Printf("Starting server on %s\b", s.Addr)
+		log.Printf(`Go to http://localhost%s`, s.Addr)
+		log.Fatal(s.ListenAndServe())
+	} else {
+		fmt.Println("CYOA")
+		fmt.Println("You need to choose an option:")
+		fmt.Println("cyoa -cli to start your adventure in the terminal")
+		fmt.Println("cyoa -web to start your adventure in the browser")
+	}
+
 }
