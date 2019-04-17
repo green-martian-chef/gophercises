@@ -38,7 +38,6 @@ var tmpl = `
 					{{range .Story}}
 						<p>{{.}}</p>
 					{{end}}
-					<hr>
 					<ul>
 					{{range .Options}}
 					<li>
@@ -48,6 +47,52 @@ var tmpl = `
 				</article>
 			</section>
 		</main>
+		<style>
+		*, ::before, ::after { box-sizing: border-box; } /* Switch to border-box for box-sizing. */
+		<style>
+      body {
+        font-family: helvetica, arial;
+      }
+      h1 {
+        text-align:center;
+        position:relative;
+      }
+      section {
+        width: 80%;
+        max-width: 700px;
+        margin: auto;
+        margin-top: 40px;
+        margin-bottom: 40px;
+        padding: 80px;
+        background: #f7fdff;
+        border: 1px solid #eee;
+        box-shadow: 0 10px 6px -6px #777;
+      }
+      ul {
+        border-top: 1px dotted #ccc;
+        padding: 10px 0 0 0;
+        -webkit-padding-start: 0;
+      }
+      li {
+        padding-top: 10px;
+      }
+      a,
+      a:visited {
+        text-decoration: none;
+        color: #5086a9;
+      }
+      a:active,
+      a:hover {
+        color: #7792a2;
+      }
+      p {
+        text-indent: 1em;
+      }
+		@media only screen and (min-width : 576px) {}
+		@media only screen and (min-width : 768px) {}
+		@media only screen and (min-width : 992px) {}
+		@media only screen and (min-width : 1200px) {}
+		</style>
   </body>
 </html>
 `
