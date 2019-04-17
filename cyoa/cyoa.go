@@ -1,23 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"text/template"
+
+	"github.com/tscangussu/gophercises/cyoa/parser"
+	"github.com/tscangussu/gophercises/cyoa/web"
 )
-
-type story map[string]chapter
-
-type chapter struct {
-	Title   string   `json:"title"`
-	Story   []string `json:"story"`
-	Options []struct {
-		Text string `json:"text"`
-		Arc  string `json:"arc"`
-	} `json:"options"`
-}
 
 var tmpl = `
 <!DOCTYPE html>
@@ -97,59 +86,16 @@ var tmpl = `
 </html>
 `
 
-func handler(j []byte) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path[1:]
-		if len(path) < 1 {
-			path = "intro"
-		}
-
-		chapter := &path
-
-		p, err := parseJSON(j)
-		if err != nil {
-			log.Fatalf("JSON couldn't be parsed %v", err)
-		}
-
-		t, err := template.New("tmpl").Parse(tmpl)
-		if err != nil {
-			log.Fatalf("Template couldn't be parsed %v", err)
-		}
-
-		err = t.Execute(w, p[*chapter])
-		if err != nil {
-			log.Fatalf("Template execution failed %v", err)
-		}
-
-	}
-}
-
-func parseJSON(j []byte) (story, error) {
-	var ret story
-
-	if err := json.Unmarshal(j, &ret); err != nil {
-		return nil, err
-	}
-
-	return ret, nil
-}
-
 func main() {
 	jsonFile, err := ioutil.ReadFile("gopher.json")
 
+	j, err := parser.JSONParser(jsonFile)
 	if err != nil {
 		log.Fatalf("Failed to open JSON file \n %v", err)
 	}
 
-	h := handler(jsonFile)
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", h)
-
-	s := &http.Server{
-		Addr:    ":8080",
-		Handler: mux,
-	}
+	h := web.Handler(j, tmpl)
+	s := web.Server(h)
 
 	log.Printf("Starting server on %s", s.Addr)
 	log.Fatal(s.ListenAndServe())
